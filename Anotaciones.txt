@@ -1,0 +1,17 @@
+- MaxTemp:
+
+-Evaporation:
+
+-Rainfall:
+
+-WindGustSpeed:
+
+- Sunshine:
+
+- Pressure9am:
+
+- Pressure3pm:
+
+- Cloud9am:
+
+- Cloud3pm:
