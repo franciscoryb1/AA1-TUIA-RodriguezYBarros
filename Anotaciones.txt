@@ -6,7 +6,7 @@
 
 ['Date', 'Location',
 *** 'MinTemp', 'MaxTemp',
-'Temp9am', 'Temp3pm', 
+*** 'Temp9am', 'Temp3pm', 
 *** 'Rainfall',
 *** 'Evaporation',
 *** 'Sunshine',
@@ -17,6 +17,6 @@
 *** 'Humidity9am', 'Humidity3pm',
 *** 'Pressure9am', 'Pressure3pm',
 *** 'Cloud9am', 'Cloud3pm',
-'RainToday', 
-'RainTomorrow', 
-'RainfallTomorrow']
+*** 'RainToday', 
+*** 'RainTomorrow', 
+*** 'RainfallTomorrow']
