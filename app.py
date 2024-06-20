@@ -172,6 +172,7 @@ transformer = TransformData20()
 transformer.transform(df_fila)
 
 # Predecir con el pipeline
-# predictions = pipeline20.predict(df_fila)
+predictions = pipeline.predict(df_fila)
+print(predictions)
 
-joblib.dump(pipeline, 'pipeline.joblib')
+# joblib.dump(pipeline, 'pipeline.joblib')
