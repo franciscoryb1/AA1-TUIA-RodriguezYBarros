@@ -2,7 +2,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 import pandas as pd
 import numpy as np
 import joblib
@@ -28,16 +28,16 @@ df = df.drop("Location", axis=1)
 # X
 X = df.drop(['RainTomorrow', 'RainfallTomorrow', 'Unnamed: 0'], axis=1)
 # y
-y = df[["RainfallTomorrow"]]
-# Rellenar valores faltantes de RainFallTomorrow
-mediana = y['RainfallTomorrow'].median()
-# Rellenar NaN con la mediana
-y = y['RainfallTomorrow'].fillna(mediana)
-y.isna().sum()
+# y = df[["RainfallTomorrow"]]
+y = df[["RainTomorrow"]]
+mode = y['RainTomorrow'].mode()[0]
+y = y['RainTomorrow'].fillna(mode)
+X = X.drop(['WindGustDir', 'WindDir9am', 'WindDir3pm', 'RainToday'], axis=1)
 
+# TransformData
 class TransformData20(BaseEstimator, TransformerMixin):
     def __init__(self):
-        self.scaler = StandardScaler()
+        pass
         
     def fit(self, X, y):
         return self  # No se necesita hacer ningún ajuste en el fit para este caso
@@ -68,17 +68,16 @@ class TransformData20(BaseEstimator, TransformerMixin):
         # Rellenar valores faltantes de Sunshine por día
         X['Sunshine'] = X.groupby(X['Date'].dt.day)["Sunshine"].transform(lambda x: x.fillna(x.mean()))
 
-
         # Rellenar valores faltantes de WindDir por día
-        X["WindGustDir"] = X.groupby(X["Date"].dt.day)[
-            "WindGustDir"
-        ].transform(lambda x: x.fillna(x.mode().iloc[0]))
-        X["WindDir9am"] = X.groupby(X["Date"].dt.day)[
-            "WindDir9am"
-        ].transform(lambda x: x.fillna(x.mode().iloc[0]))
-        X["WindDir3pm"] = X.groupby(X["Date"].dt.day)[
-            "WindDir3pm"
-        ].transform(lambda x: x.fillna(x.mode().iloc[0]))
+        # X["WindGustDir"] = X.groupby(X["Date"].dt.day)[
+        #     "WindGustDir"
+        # ].transform(lambda x: x.fillna(x.mode().iloc[0]))
+        # X["WindDir9am"] = X.groupby(X["Date"].dt.day)[
+        #     "WindDir9am"
+        # ].transform(lambda x: x.fillna(x.mode().iloc[0]))
+        # X["WindDir3pm"] = X.groupby(X["Date"].dt.day)[
+        #     "WindDir3pm"
+        # ].transform(lambda x: x.fillna(x.mode().iloc[0]))
         
         # Rellenar valores faltantes de WindSpeed, Humidity, Cloud, Pressure, Temp por día
         columns_to_fillna = ['WindGustSpeed', 'WindSpeed9am', 'WindSpeed3pm', 'Humidity9am', 'Humidity3pm', 'Cloud9am',
@@ -89,39 +88,40 @@ class TransformData20(BaseEstimator, TransformerMixin):
                 X[column] = X.groupby(X['Date'].dt.day)[column].transform(lambda x: x.fillna(x.median()))
         
         # Rellenar valores faltantes de RainToday con la moda y pasarlo a 1 y 0
-        moda_RainToday = X.groupby("Date")["RainToday"].transform(
-            lambda x: x.mode().iloc[0] if not x.mode().empty else None
-        )
-        X["RainToday"] = X["RainToday"].fillna(moda_RainToday)
-        X["RainToday"] = X["RainToday"].map({"Yes": 1, "No": 0})
+        # moda_RainToday = X.groupby("Date")["RainToday"].transform(
+        #     lambda x: x.mode().iloc[0] if not x.mode().empty else None
+        # )
+        # X["RainToday"] = X["RainToday"].fillna(moda_RainToday)
+        # X["RainToday"] = X["RainToday"].map({"Yes": 1, "No": 0})
 
         # Agrupar direcciones de viento
-        X['WindGustDir_Agrupado'] = X['WindGustDir'].apply(self.agrupar_direcciones)
-        X['WindDir9am_Agrupado'] = X['WindDir9am'].apply(self.agrupar_direcciones)
-        X['WindDir3pm_Agrupado'] = X['WindDir3pm'].apply(self.agrupar_direcciones)
-        X = X.drop(['WindGustDir', 'WindDir9am', 'WindDir3pm'], axis=1)
+        # X['WindGustDir'] = X['WindGustDir'].apply(self.agrupar_direcciones)
+        # X['WindDir9am'] = X['WindDir9am'].apply(self.agrupar_direcciones)
+        # X['WindDir3pm'] = X['WindDir3pm'].apply(self.agrupar_direcciones)
+
+        # Crear variables dummies para direcciones agrupadas
+        # X = pd.get_dummies(X, columns=['WindGustDir', 'WindDir9am', 'WindDir3pm'],
+        #                     drop_first=True)
+        # X.replace({True: 1, False: 0}, inplace=True)
         
         # Crear variables dummies para direcciones agrupadas
-        X = pd.get_dummies(X, columns=['WindGustDir_Agrupado', 'WindDir9am_Agrupado', 'WindDir3pm_Agrupado'],
-                            drop_first=True)
+        # dummies = pd.get_dummies(X, columns=['WindGustDir', 'WindDir9am', 'WindDir3pm'], drop_first=True)
+        # dummies = dummies[['WindGustDir_N', 'WindGustDir_S', 'WindGustDir_W', 'WindDir9am_N', 'WindDir9am_S', 'WindDir9am_W', 'WindDir3pm_N', 'WindDir3pm_S', 'WindDir3pm_W']]
+        # X = pd.concat([X, dummies], axis=1)
         
         # Calcular diferencia de temperatura máxima y mínima
-        X['Dif_Temp_Max_Min'] = X['MaxTemp'] - X['MinTemp']
-        X = X.drop(['MaxTemp', 'MinTemp'], axis=1)
+        # X['Dif_Temp_Max_Min'] = X['MaxTemp'] - X['MinTemp']
+        # X = X.drop(['MaxTemp', 'MinTemp'], axis=1)
         
         # Calcular diferencia de temperaturas 9am y 3pm
-        X['Temp_Difference'] = X['Temp3pm'] - X['Temp9am']
-        X = X.drop(['Temp3pm', 'Temp9am'], axis=1)
+        # X['Temp_Difference'] = X['Temp3pm'] - X['Temp9am']
+        # X = X.drop(['Temp3pm', 'Temp9am'], axis=1)
         
         # Eliminar columnas innecesarias
         X = X.drop(['Date', 'Bimestre'], axis=1)
-
-        # df_train
-        scaler = StandardScaler()
-        X_Scale = scaler.fit_transform(X)
-        X_Scale = pd.DataFrame(X_Scale, columns=X.columns)
+        # X = X.drop(['Bimestre'], axis=1)
         
-        return X_Scale
+        return X
     
     def determinar_bimestre(self, fecha):
         mes = fecha.month
@@ -145,34 +145,32 @@ class TransformData20(BaseEstimator, TransformerMixin):
             "E": ["E", "ENE", "ESE", "SE", "NE"],
             "W": ["W", "WNW", "WSW", "SW", "NW"],
         }
-
         for grupo, direcciones in grupos_principales.items():
             if direccion in direcciones:
                 return grupo
-
         return "Otro"
 
 # Pipeline
-pipeline = Pipeline([
+pipeline20 = Pipeline([
     ('transform_data', TransformData20()),
-    ('regression', LinearRegression())
+    ('regression', LogisticRegression(random_state=42, class_weight='balanced'))
 ])
 
 # Entrenar el pipeline
-pipeline.fit(X, y)
+pipeline20.fit(X, y)
+joblib.dump(pipeline20, 'pipeline.joblib')
 
-# Fila para PREDICT
-pd.set_option('future.no_silent_downcasting', True)
-# Filtrar el DataFrame
-fila = df.iloc[10]
-# Convertir la fila en un nuevo DataFrame
-df_fila = pd.DataFrame(fila).transpose()
-df_fila = df_fila.drop(['RainTomorrow', 'RainfallTomorrow', 'Unnamed: 0'], axis=1)
-transformer = TransformData20()
-transformer.transform(df_fila)
 
-# Predecir con el pipeline
-predictions = pipeline.predict(df_fila)
-print(predictions)
+# # Fila para PREDICT
+# pd.set_option('future.no_silent_downcasting', True)
+# # Filtrar el DataFrame
+# fila = df.iloc[10]
+# # Convertir la fila en un nuevo DataFrame
+# df_fila = pd.DataFrame(fila).transpose()
+# df_fila = df_fila.drop(['RainTomorrow', 'RainfallTomorrow', 'Unnamed: 0'], axis=1)
+# transformer = TransformData20()
+# transformer.transform(df_fila)
 
-# joblib.dump(pipeline, 'pipeline.joblib')
+# # Predecir con el pipeline
+# predictions = pipeline.predict(df_fila)
+# print(predictions)
