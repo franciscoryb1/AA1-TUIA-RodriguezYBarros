@@ -76,10 +76,10 @@ prediccion_rain_fall_tomorrow = modelRainFallTomorrow.predict(fila)
 
 st.subheader('Predicción RainFallTomorrow')
 st.write(prediccion_rain_fall_tomorrow)
-
+print(prediccion_rain_tomorrow)
 # RainTomorrow
 st.subheader('Predicción RainTomorrow')
-if prediccion_rain_tomorrow[0] == 1:
+if prediccion_rain_tomorrow[0] == 'Yes':
     st.write("¡Sí! Probablemente lloverá mañana.")
     st.image("assets/rainy_icon.png.png", width=100)
 else:
