@@ -160,7 +160,6 @@ pipeline20 = Pipeline([
 pipeline20.fit(X, y)
 joblib.dump(pipeline20, 'pipeline.joblib')
 
-
 # # Fila para PREDICT
 # pd.set_option('future.no_silent_downcasting', True)
 # # Filtrar el DataFrame
